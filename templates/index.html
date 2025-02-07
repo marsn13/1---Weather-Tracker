@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #weatherResult {
+            margin-top: 20px;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Tracker</h1>
+    <form id="weatherForm">
+        <label for="city">Digite o nome da cidade:</label>
+        <input type="text" id="city" name="city" required>
+        <button type="submit">Buscar</button>
+    </form>
+    
+    <div id="weatherResult"></div>
+    
+    <script>
+        // Função para buscar os dados do tempo via AJAX
+        function fetchWeather(city) {
+            fetch(`/weather?city=${encodeURIComponent(city)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.error) {
+                        document.getElementById('weatherResult').innerHTML = `<p style="color:red;">Erro: ${data.error}</p>`;
+                        return;
+                    }
+                    
+                    let resultHTML = `<h2>Clima em ${data.city}</h2>`;
+                    resultHTML += `<p>Temperatura: ${data.temperature} °C</p>`;
+                    resultHTML += `<p>Umidade: ${data.humidity}%</p>`;
+                    resultHTML += `<p>Condição: ${data.description}</p>`;
+                    
+                    document.getElementById('weatherResult').innerHTML = resultHTML;
+                    
+                    // Dispara um alerta se a condição conter "rain"
+                    if (data.description.toLowerCase().includes('rain')) {
+                        alert(`Alerta: Está chovendo em ${data.city}!`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar dados do tempo:', error);
+                    document.getElementById('weatherResult').innerHTML = `<p>Erro ao buscar dados do tempo.</p>`;
+                });
+        }
+        
+        // Evento de submit do formulário
+        document.getElementById('weatherForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const city = document.getElementById('city').value;
+            fetchWeather(city);
+        });
+        
+        // Atualização automática a cada 60 segundos (se um valor de cidade estiver preenchido)
+        setInterval(function() {
+            const cityInput = document.getElementById('city').value;
+            if (cityInput.trim() !== "") {
+                fetchWeather(cityInput);
+            }
+        }, 60000); // 60000 milissegundos = 60 segundos
+    </script>
+</body>
+</html>
